@@ -13,27 +13,28 @@ const NoteForm = () => {
 
   async function getDBObjectStore(e, note) {
     e.preventDefault();
-    const db = await openDB("Notes", 1, {
+    const db = await openDB("Notes", 2.0, {
       upgrade(db) {
-
+        if(db.objectStoreNames.contains("Note")){
+          db.deleteObjectStore("Note")
+        }
         const store = db.createObjectStore("Note", {
           keyPath: "id",
           autoIncrement: true
         })
         
         store.createIndex("title", "title", { unique: false });
-        store.createIndex("content", "content", { unique: false });
-      }
+        store.createIndex("contents", "contents", { unique: false });
+      },
+      // blocking() {
+      //   if()
+      // }
     });
     
-
-    console.log(db);
-    //const tx = db.transaction("Note", "readwrite");
-    //const store = tx.objectStore("Note");
+    // show what is in note then add to database
+    console.log(note);
     await db.add(["Note"], note);
-
-    
-  
+    db.close();
     
     //     db.createIndex("completed", "completed", { unique: false });
     //     db.createIndex("date", "date", { unique: false });
@@ -42,21 +43,28 @@ const NoteForm = () => {
   };
 
   const [ note, setNote ] = useState({
-    title: "",
-    contents: ""
-  });//, completed: false date: new Date});
+      title: "",
+      contents: ""
+  }); //, completed: false date: new Date});
 
 
   // handleChange on Document
   const titleChange = (e) => {
-    setNote({
-      title: e.target.value
-    });
+
+    setNote((prevState) => ({
+      ...prevState,
+      
+        title: e.target.value,
+      
+        
+    }));
   };
   const contentsChange = (e) => {
-    setNote({
-      contents: e.target.value
-    });
+    setNote((prevState) => ({
+      ...prevState,
+        contents: e.target.value,
+      
+    }));
   };
   
 
@@ -68,11 +76,11 @@ const NoteForm = () => {
         <Form.Control
           className="note-title"
           as="textarea" placeholder="Title"
-          onChange={ titleChange }/>
+          onChange={ e => titleChange(e) }/>
         <Form.Control
           className="note-textarea"
-          as="textarea" placeholder="Please type in your note"
-          onChange={ contentsChange }/>
+          placeholder="Please type in your note"
+          onChange={ e => contentsChange(e) }/>
         <Form.Text className="text-muted">
           We'll never share your note with anyone else.
         </Form.Text>
